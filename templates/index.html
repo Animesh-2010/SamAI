@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthSync - Smart Healthcare Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-purple: #A88DDB;
+            --secondary-purple: #F9E6FF;
+            --accent-pink: #FF69B4;
+            --dark-text: #2D3436;
+            --light-text: #636e72;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: var(--dark-text);
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 8%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-purple);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--accent-pink);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-text);
+            font-weight: 500;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-purple);
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 12rem 8% 5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 3rem;
+            min-height: 100vh;
+        }
+
+        .hero-content {
+            animation: slideInLeft 1s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: var(--dark-text);
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            color: var(--light-text);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-purple);
+            color: white;
+            box-shadow: 0 10px 20px rgba(168, 141, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-purple);
+            color: var(--primary-purple);
+            border: 2px solid var(--primary-purple);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .hero-image {
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .hero-image img {
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 4rem 8%;
+            background: var(--secondary-purple);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            border-radius: 20px;
+            margin: 2rem 8%;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 8%;
+            background: white;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--dark-text);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--light-text);
+            margin-bottom: 4rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            padding: 2rem;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(168, 141, 219, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(168, 141, 219, 0.2);
+        }
+
+        .feature-card i {
+            font-size: 2.5rem;
+            color: var(--accent-pink);
+            margin-bottom: 1.5rem;
+            background: var(--secondary-purple);
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 50%;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+        }
+
+        .feature-card p {
+            color: var(--light-text);
+            line-height: 1.6;
+        }
+
+        /* Patient Section */
+        .patient-section {
+            padding: 6rem 8%;
+            background: var(--secondary-purple);
+        }
+
+        .section-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .section-image img {
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark-text);
+        }
+
+        .section-content p {
+            color: var(--light-text);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            margin-bottom: 2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-item i {
+            color: var(--accent-pink);
+            font-size: 1.2rem;
+            margin-right: 1rem;
+            margin-top: 3px;
+        }
+
+        /* Doctor Section */
+        .doctor-section {
+            padding: 6rem 8%;
+            background: white;
+        }
+
+        /* Chatbot Section */
+        .chatbot-section {
+            padding: 6rem 8%;
+            background: linear-gradient(135deg, var(--primary-purple), #D8BFD8);
+            color: white;
+            text-align: center;
+        }
+
+        .chatbot-section .section-title {
+            color: white;
+        }
+
+        .chatbot-bubble {
+            background: white;
+            color: var(--dark-text);
+            padding: 3rem;
+            border-radius: 30px;
+            max-width: 700px;
+            margin: 2rem auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .chatbot-bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 20px 20px 0;
+            border-style: solid;
+            border-color: white transparent transparent;
+        }
+
+        .chatbot-bubble h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--primary-purple);
+        }
+
+        .chatbot-bubble p {
+            color: var(--light-text);
+            margin-bottom: 2rem;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 6rem 8%;
+            background: var(--secondary-purple);
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .testimonial-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(168, 141, 219, 0.1);
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-purple);
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .author-info h4 {
+            color: var(--dark-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .author-info p {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 6rem 8%;
+            text-align: center;
+            background: white;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 4rem 8%;
+            background: var(--dark-text);
+            color: white;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+        }
+
+        .footer-logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-logo i {
+            color: var(--accent-pink);
+        }
+
+        .footer-links h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: #b2bec3;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-links a {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-pink);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #b2bec3;
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding-top: 8rem;
+                text-align: center;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-container {
+                grid-template-columns: 1fr;
+            }
+
+            .section-image {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-heartbeat"></i>
+            HealthSync
+        </div>
+        <div class="nav-links">
+            <a href="#home">Home</a>
+            <a href="#features">Features</a>
+            <a href="#patients">For Patients</a>
+            <a href="#doctors">For Doctors</a>
+            <a href="{{ url_for('login') }}">Login</a>
+        </div>
+    </nav>
+
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>Empowering Health,<br>One Sync at a Time</h1>
+            <p>Revolutionizing chronic care management through intelligent monitoring and seamless doctor-patient collaboration.</p>
+            <div class="cta-buttons">
+                <button class="btn btn-primary">Get Started</button>
+                <button class="btn btn-secondary">Learn More</button>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Healthcare Platform Interface">
+        </div>
+    </section>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number">24</div>
+            <div class="stat-label">Health Monitoring</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">98</div>
+            <div class="stat-label">Patient Satisfaction</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">50</div>
+            <div class="stat-label">Clinics Connected</div>
+        </div>
+    </div>
+
+    <section class="features" id="features">
+        <h2 class="section-title">Our Powerful Features</h2>
+        <p class="section-subtitle">Designed to transform your healthcare experience with cutting-edge technology</p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Real-time Analytics</h3>
+                <p>Continuous health monitoring with intelligent trend analysis and predictive insights for better health outcomes.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-comments"></i>
+                <h3>Smart Chatbot</h3>
+                <p>24/7 AI assistant that provides instant health guidance, medication reminders, and symptom analysis.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-file-medical"></i>
+                <h3>Automated Reports</h3>
+                <p>Comprehensive weekly health summaries automatically shared with your healthcare providers.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-mobile-alt"></i>
+                <h3>Mobile Access</h3>
+                <p>Access your health data anytime, anywhere through our user-friendly mobile application.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-bell"></i>
+                <h3>Smart Alerts</h3>
+                <p>Instant notifications for abnormal readings or when your doctor sends you important updates.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-hand-holding-heart"></i>
+                <h3>Personalized Care</h3>
+                <p>Customized health plans tailored to your specific conditions and wellness goals.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="patient-section" id="patients">
+        <div class="section-container">
+            <div class="section-content">
+                <h2>Patient Dashboard</h2>
+                <p>Take control of your health with our intuitive patient portal designed for easy monitoring and communication.</p>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h4>Health Tracking</h4>
+                            <p>Log and monitor vital signs, symptoms, and medications</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h4>Secure Messaging</h4>
+                            <p>Direct communication with your healthcare team</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h4>Appointment Management</h4>
+                            <p>Schedule and track upcoming appointments</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary">Explore Patient Features</button>
+            </div>
+            <div class="section-image">
+                <img src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Patient Dashboard">
+            </div>
+        </div>
+    </section>
+
+    <section class="doctor-section" id="doctors">
+        <div class="section-container">
+            <div class="section-image">
+                <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Doctor Interface">
+            </div>
+            <div class="section-content">
+                <h2>Doctor Interface</h2>
+                <p>Powerful tools for healthcare providers to deliver better care through comprehensive patient insights.</p>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h4>Patient Overview</h4>
+                            <p>Quick access to patient history and current status</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h4>Trend Analysis</h4>
+                            <p>Visualize patient data trends over time</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <h4>Alert System</h4>
+                            <p>Get notified about critical patient changes</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary">Learn About Professional Features</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="chatbot-section">
+        <h2 class="section-title">Your AI Health Companion</h2>
+        <p class="section-subtitle" style="color: rgba(255,255,255,0.8);">Available 24/7 to answer your health questions and provide guidance</p>
+        <div class="chatbot-bubble">
+            <h3>How can I help you today?</h3>
+            <p>Ask about medication, diet plans, symptom analysis, or general health advice. Our AI assistant is trained to provide reliable information and connect you with your care team when needed.</p>
+            <a href="{{ url_for('chatbot') }}" class="btn btn-primary">Start Chat Now</a>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <h2 class="section-title">What Our Users Say</h2>
+        <p class="section-subtitle">Hear from patients and doctors who transformed their healthcare experience</p>
+        <div class="testimonial-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    "HealthSync has completely changed how I manage my diabetes. The continuous monitoring and instant feedback help me stay on track every day."
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-avatar">JD</div>
+                    <div class="author-info">
+                        <h4>John D.</h4>
+                        <p>Type 2 Diabetes Patient</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    "As a cardiologist, I appreciate how HealthSync gives me a comprehensive view of my patients' health between visits. The automated alerts help me intervene early when needed."
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-avatar">SR</div>
+                    <div class="author-info">
+                        <h4>Dr. Sarah R.</h4>
+                        <p>Cardiologist</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    "The chatbot is surprisingly helpful! It reminds me to take my meds and gives great diet suggestions tailored to my hypertension."
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-avatar">MP</div>
+                    <div class="author-info">
+                        <h4>Maria P.</h4>
+                        <p>Hypertension Patient</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section" id="contact">
+        <h2 class="section-title">Ready to Transform Your Healthcare?</h2>
+        <p class="section-subtitle">Join thousands of patients and doctors already experiencing better health outcomes</p>
+        <div style="display: flex; gap: 1.5rem; justify-content: center; margin-top: 3rem;">
+            <button class="btn btn-primary">Sign Up as Patient</button>
+            <button class="btn btn-secondary">Doctor Registration</button>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-logo">
+                    <i class="fas fa-heartbeat"></i>
+                    HealthSync
+                </div>
+                <p style="color: #b2bec3; line-height: 1.6; margin-bottom: 1.5rem;">Empowering better health through intelligent technology and seamless collaboration.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Security</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3>Contact</h3>
+                <ul>
+                    <li><a href="#">support@healthsync.com</a></li>
+                    <li><a href="#">700-HEALTHSYNC</a></li>
+                    <li><a href="#">123 Medical Drive</a></li>
+                    <li><a href="#">PAttanagre</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2023 HealthSync. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Animation trigger on scroll
+        window.addEventListener('scroll', () => {
+            const stats = document.querySelector('.stats');
+            const statNumbers = document.querySelectorAll('.stat-number');
+            const statsPosition = stats.getBoundingClientRect().top;
+            const screenPosition = window.innerHeight / 1.3;
+
+            if(statsPosition < screenPosition) {
+                const statsData = [24, 98, 50]; // Original values
+                statNumbers.forEach((number, index) => {
+                    // Only animate if not already animated
+                    if (!number.classList.contains('animated')) {
+                        number.classList.add('animated');
+                        const target = statsData[index];
+                        let count = 0;
+                        const increment = target / 100;
+                        
+                        const updateNumber = () => {
+                            if(count < target) {
+                                count += increment;
+                                number.innerText = Math.ceil(count);
+                                setTimeout(updateNumber, 20);
+                            } else {
+                                number.innerText = target + 
+                                (index === 0 ? "/7" : index === 1 ? "%" : "+");
+                            }
+                        }
+                        updateNumber();
+                    }
+                });
+            }
+        });
+
+        // Button hover effects
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('mousemove', e => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                btn.style.setProperty('--x', x + 'px');
+                btn.style.setProperty('--y', y + 'px');
+            });
+        });
+    </script>
+</body>
+</html>

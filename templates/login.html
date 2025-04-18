@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthSync - Get Started</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-purple: #A88DDB;
+            --secondary-purple: #F9E6FF;
+            --accent-pink: #FF69B4;
+            --dark-text: #2D3436;
+            --light-text: #636e72;
+        }
+
+        body {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        /* Auth Container */
+        .auth-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+        }
+
+        /* Hero Section */
+        .auth-hero {
+            background: linear-gradient(135deg, var(--primary-purple), #D8BFD8);
+            border-radius: 30px;
+            padding: 4rem;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-hero p {
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        /* Auth Forms */
+        .auth-forms {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .role-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .role-tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            border: 2px solid var(--secondary-purple);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .role-tab.active {
+            background: var(--primary-purple);
+            color: white;
+            border-color: var(--primary-purple);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--dark-text);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--secondary-purple);
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            border-color: var(--primary-purple);
+            outline: none;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .toggle-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--light-text);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(168,141,219,0.3);
+        }
+
+        .switch-form {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--light-text);
+        }
+
+        .switch-form a {
+            color: var(--primary-purple);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .social-auth {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .social-btns {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+    .error-message {
+        color: red;
+        margin-top: 1rem;
+        text-align: center;
+    }
+    
+    /* Add this new rule */
+    .auth-forms form {
+        margin-bottom: 2rem;
+    }
+
+
+        .social-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--secondary-purple);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .social-btn:hover {
+            background: var(--secondary-purple);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .auth-container {
+                grid-template-columns: 1fr;
+                padding: 2rem 1rem;
+                gap: 2rem;
+            }
+
+            .auth-hero {
+                display: none;
+            }
+
+            .auth-forms {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-hero">
+            <h1>Welcome to HealthSync</h1>
+            <p>Join our smart healthcare platform and experience seamless doctor-patient collaboration. Manage your health data, connect with professionals, and take control of your wellbeing.</p>
+        </div>
+
+        <div class="auth-forms">
+            <!-- Role Selection -->
+            <div class="role-tabs">
+                <div class="role-tab active" data-role="patient">Patient</div>
+                <div class="role-tab" data-role="doctor">Doctor</div>
+            </div>
+
+            <!-- Patient Login -->
+            <div class="auth-form active" id="patient-login">
+               <!-- In Patient Login form -->
+                <!-- Patient Login form -->
+                <form action="{{ url_for('login') }}" method="POST">
+                    <input type="hidden" name="role" value="patient">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" name="username" required value="patient">
+                    </div>
+                    <div class="form-group password-toggle">
+                        <label>Password</label>
+                        <input type="password" name="password" required value="patient123">
+                    </div>
+                    <button type="submit" class="submit-btn">Login</button>
+                    {% if error %}
+                    <div class="error-message" style="color: red; margin-top: 1rem;">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+
+            <!-- Patient Signup -->
+            <div class="auth-form" id="patient-signup">
+                <form>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" required>
+                    </div>
+                    
+                    <div class="form-group password-toggle">
+                        <label>Password</label>
+                        <input type="password" required>
+                        <i class="fas fa-eye toggle-icon"></i>
+                    </div>
+
+                    <div class="form-group password-toggle">
+                        <label>Confirm Password</label>
+                        <input type="password" required>
+                        <i class="fas fa-eye toggle-icon"></i>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Create Account</button>
+                    <div class="switch-form">
+                        Already have account? <a href="#" onclick="showLogin('patient')">Login</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Doctor Login -->
+            <div class="auth-form" id="doctor-login">
+                <!-- In Doctor Login form -->
+                <form action="{{ url_for('login') }}" method="POST">
+                    <input type="hidden" name="role" value="doctor">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" name="username" required value="doctor">
+                    </div>
+                    <div class="form-group password-toggle">
+                        <label>Password</label>
+                        <input type="password" name="password" required value="doctor123">
+                    </div>
+                    <button type="submit" class="submit-btn">Doctor Login</button>
+                    {% if error %}
+                    <div class="error-message" style="color: red; margin-top: 1rem;">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+
+            <!-- Doctor Signup -->
+            <div class="auth-form" id="doctor-signup">
+                <form>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Professional Email</label>
+                        <input type="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Medical License Number</label>
+                        <input type="text" required>
+                    </div>
+                    
+                    <div class="form-group password-toggle">
+                        <label>Password</label>
+                        <input type="password" required>
+                        <i class="fas fa-eye toggle-icon"></i>
+                    </div>
+
+                    <div class="form-group password-toggle">
+                        <label>Confirm Password</label>
+                        <input type="password" required>
+                        <i class="fas fa-eye toggle-icon"></i>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Register as Doctor</button>
+                    <div class="switch-form">
+                        Already registered? <a href="#" onclick="showLogin('doctor')">Login</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="social-auth">
+                <p>Or continue with</p>
+                <div class="social-btns">
+                    <div class="social-btn">
+                        <i class="fab fa-google"></i>
+                    </div>
+                    <div class="social-btn">
+                        <i class="fab fa-apple"></i>
+                    </div>
+                    <div class="fas fa-user-md social-btn"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Role Tabs
+        document.querySelectorAll('.role-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const role = this.dataset.role;
+                
+                // Update active tab
+                document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // Show correct form
+                document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+                document.querySelector(`#${role}-login`).classList.add('active');
+            });
+        });
+
+        // Toggle Password Visibility
+        document.querySelectorAll('.toggle-icon').forEach(icon => {
+            icon.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                const type = input.type === 'password' ? 'text' : 'password';
+                input.type = type;
+                this.classList.toggle('fa-eye-slash');
+            });
+        });
+
+        // Switch Between Login/Signup
+        function showSignup(role) {
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            document.querySelector(`#${role}-signup`).classList.add('active');
+        }
+
+        function showLogin(role) {
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            document.querySelector(`#${role}-login`).classList.add('active');
+        }
+
+        
+       
+    </script>
+</body>
+</html>

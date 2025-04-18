@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthSync - Doctor Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-purple: #A88DDB;
+            --secondary-purple: #F9E6FF;
+            --accent-pink: #FF69B4;
+            --dark-text: #2D3436;
+            --light-text: #636e72;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--dark-text);
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 8%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-purple);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--accent-pink);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-text);
+            font-weight: 500;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        /* Doctor Dashboard Styles */
+        .doctor-dashboard {
+            padding: 10rem 8% 3rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .welcome-message h1 {
+            font-size: 2.2rem;
+            color: var(--dark-text);
+        }
+
+        .welcome-message p {
+            color: var(--light-text);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(168, 141, 219, 0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--secondary-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-purple);
+            font-size: 1.5rem;
+        }
+
+        .stat-content h3 {
+            font-size: 2rem;
+            color: var(--primary-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-content p {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .patient-list {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(168, 141, 219, 0.1);
+        }
+
+        .patient-list h2 {
+            margin-bottom: 2rem;
+            color: var(--dark-text);
+        }
+
+        .patient-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            transition: 0.3s;
+            cursor: pointer;
+            border: 1px solid #eee;
+        }
+
+        .patient-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(168, 141, 219, 0.1);
+        }
+
+        .patient-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--secondary-purple);
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-purple);
+            font-weight: bold;
+        }
+
+        .patient-info h4 {
+            margin-bottom: 0.3rem;
+            color: var(--dark-text);
+        }
+
+        .patient-info p {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .right-sidebar {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(168, 141, 219, 0.1);
+        }
+
+        .alert-list {
+            margin-top: 2rem;
+        }
+
+        .alert-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            background: #fff5f5;
+            border-left: 4px solid var(--accent-pink);
+        }
+
+        .alert-item h4 {
+            color: var(--dark-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-item p {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .calendar-widget {
+            margin-top: 2rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .calendar-day.active {
+            background: var(--secondary-purple);
+            color: var(--primary-purple);
+            font-weight: 600;
+        }
+
+        .quick-actions {
+            margin-top: 2rem;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            padding: 1rem;
+            border-radius: 10px;
+            background: var(--secondary-purple);
+            color: var(--primary-purple);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(168, 141, 219, 0.1);
+        }
+        /* Additions and improvements */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-purple);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(168, 141, 219, 0.3);
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--light-text);
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .btn-icon:hover {
+            background: var(--secondary-purple);
+        }
+
+        /* Status text colors */
+        .text-warning { color: #FF6B6B; }
+        .text-success { color: #6BCB77; }
+        .text-alert { color: #FFD93D; }
+
+        /* Active link underline animation */
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-purple);
+            transition: 0.3s;
+        }
+
+        .nav-links a.active::after,
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Logout link styling */
+        .logout-link {
+            color: #e74c3c !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        
+        .logout-link:hover {
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .logout-link:hover::after {
+            width: 0 !important; /* Override the underline effect for logout */
+        }
+
+        /* Enhanced patient avatar */
+        .patient-avatar {
+            background: linear-gradient(135deg, var(--primary-purple), var(--accent-pink));
+            color: white;
+        }
+
+        /* Mobile menu */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark-text);
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 4.5rem;
+                right: -100%;
+                flex-direction: column;
+                background: white;
+                width: 60%;
+                padding: 2rem;
+                box-shadow: -5px 5px 20px rgba(0, 0, 0, 0.1);
+                transition: 0.3s;
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+        }
+
+        /* Accessibility improvements */
+        button:focus,
+        a:focus {
+            outline: 2px solid var(--primary-purple);
+            outline-offset: 2px;
+        }
+
+        /* Better contrast for text */
+        .stat-content h3 {
+            font-size: 2rem;
+            color: var(--dark-text);
+        }
+
+        /* Calendar improvements */
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Patient vital indicators */
+        .vital-indicator {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        .low-risk {
+            background-color: #e8f7ed;
+            color: #6BCB77;
+        }
+
+        .medium-risk {
+            background-color: #fef6e7;
+            color: #FFB347;
+        }
+
+        .high-risk {
+            background-color: #fde8e8;
+            color: #FF6B6B;
+        }
+
+        .critical-risk {
+            background-color: #ffecec;
+            color: #FF0000;
+            font-weight: 600;
+        }
+
+        /* Real-time update animation */
+        @keyframes highlight-update {
+            0% { background-color: transparent; }
+            50% { background-color: rgba(168, 141, 219, 0.2); }
+            100% { background-color: transparent; }
+        }
+
+        .update-highlight {
+            animation: highlight-update 1.5s ease-out;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+
+        /* File uploads section */
+        .patient-files {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(168, 141, 219, 0.1);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary-purple);
+        }
+        
+        .file-icon {
+            font-size: 1.5rem;
+            color: var(--primary-purple);
+            margin-right: 1.5rem;
+        }
+        
+        .file-details {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+        
+        .file-meta {
+            font-size: 0.8rem;
+            color: var(--light-text);
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .file-actions button {
+            background: none;
+            border: none;
+            color: var(--light-text);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.5rem;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        
+        .file-actions button:hover {
+            background: var(--secondary-purple);
+            color: var(--primary-purple);
+        }
+        
+        /* Appointments table */
+        .appointments-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(168, 141, 219, 0.1);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .appointments-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .appointments-table th {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 2px solid #eee;
+            color: var(--dark-text);
+            font-weight: 600;
+        }
+        
+        .appointments-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            color: var(--light-text);
+        }
+        
+        .appointments-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: #FEF6E7;
+            color: #F9A826;
+        }
+        
+        .status-approved {
+            background: #E8F7ED;
+            color: #2ECC71;
+        }
+        
+        .status-rejected {
+            background: #FDE8E8;
+            color: #E74C3C;
+        }
+        
+        .appt-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .appt-btn {
+            border: none;
+            padding: 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .appt-approve {
+            background: #E8F7ED;
+            color: #2ECC71;
+        }
+        
+        .appt-approve:hover {
+            background: #2ECC71;
+            color: white;
+        }
+        
+        .appt-reject {
+            background: #FDE8E8;
+            color: #E74C3C;
+        }
+        
+        .appt-reject:hover {
+            background: #E74C3C;
+            color: white;
+        }
+
+        .appt-btn[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-heartbeat" aria-hidden="true"></i>
+            HealthSync
+        </div>
+        <button class="menu-toggle" aria-label="Open menu" title="Toggle menu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="nav-links">
+            <!-- Existing navigation links -->
+            <a href="/logout" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </nav>
+
+    <main class="doctor-dashboard">
+        <div class="dashboard-header">
+            <div class="welcome-message">
+                <h1>Welcome Back, Dr. Smith</h1>
+                <p>Last login: Today at 08:45 AM</p>
+            </div>
+            <button class="btn btn-primary" title="Add new patient">+ New Patient</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-injured"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>142</h3>
+                        <p>Active Patients</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="alertCount">0</h3>
+                        <p>New Alerts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>2.1h</h3>
+                        <p>Avg. Response Time</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="patient-list">
+                <h2>Recent Patients</h2>
+                <div class="patient-item" id="patient-alex">
+                    <div class="patient-avatar">AD</div>
+                    <div class="patient-info">
+                        <h4>Alex Doe (ID: 2345)</h4>
+                        <p>Type 2 Diabetes & Hypertension • Last check: <span class="last-check-time">waiting...</span></p>
+                        <div id="patient-vitals">
+                            <p>Blood Glucose: <span id="glucose-value">--</span> <span id="glucose-risk" class="vital-indicator"></span></p>
+                            <p>Blood Pressure: <span id="bp-value">--/--</span> <span id="bp-risk" class="vital-indicator"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="patient-item">
+                    <div class="patient-avatar">MS</div>
+                    <div class="patient-info">
+                        <h4>Mary Smith (ID: 1567)</h4>
+                        <p>Hypertension • Last check: 4 hours ago</p>
+                        <p class="text-success">BP: 120/80 mmHg</p>
+                    </div>
+                </div>
+                <div class="patient-item">
+                    <div class="patient-avatar">DP</div>
+                    <div class="patient-info">
+                        <h4>David Park (ID: 0897)</h4>
+                        <p>Asthma • Last check: 6 hours ago</p>
+                        <p class="text-alert">Peak Flow: 420 L/min</p>
+                    </div>
+                </div>
+                
+                <!-- Appointment Management Section -->
+                <div class="appointments-section">
+                    <h2>Upcoming Appointments</h2>
+                    <table class="appointments-table">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appointmentsTableBody">
+                            <!-- Appointments will be loaded here -->
+                            <tr>
+                                <td colspan="6" style="text-align: center;">Loading appointments...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Patient Files Section -->
+                <div class="patient-files">
+                    <h2>Patient Uploaded Files</h2>
+                    <div id="patientFiles">
+                        <!-- Files will be loaded here -->
+                        <p style="text-align: center;">Loading patient files...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-sidebar">
+                <div class="alert-list">
+                    <h3>Recent Alerts</h3>
+                    <div class="alert-item">
+                        <h4>Critical Alert: John Doe</h4>
+                        <p>Blood glucose level above 200 mg/dL</p>
+                        <small>2 hours ago</small>
+                    </div>
+                    <div class="alert-item">
+                        <h4>Medication Reminder</h4>
+                        <p>Sarah Johnson missed her Metformin dose</p>
+                        <small>4 hours ago</small>
+                    </div>
+                </div>
+
+                <div class="calendar-widget">
+                    <div class="calendar-header">
+                        <h4>November 2023</h4>
+                        <div class="controls">
+                            <button class="btn-icon" title="Previous month"><i class="fas fa-chevron-left"></i></button>
+                            <button class="btn-icon" title="Next month"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid">
+                        <!-- Calendar days would be dynamically generated -->
+                        <div class="calendar-day">1</div>
+                        <div class="calendar-day active">2</div>
+                        <!-- ... more days ... -->
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="action-btn" title="Create new patient report">
+                        <i class="fas fa-file-medical"></i>
+                        <span>New Report</span>
+                    </div>
+                    <div class="action-btn" title="Start video consultation with patient">
+                        <i class="fas fa-video"></i>
+                        <span>Start Consultation</span>
+                    </div>
+                    <div class="action-btn" title="Send message to patient">
+                        <i class="fas fa-comment-medical"></i>
+                        <span>Message Patient</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Socket.IO Connection
+        const socket = io();
+        let alertCount = 0;
+        
+        socket.on('connect', () => {
+            console.log('Doctor interface connected to server');
+            // Request latest readings on connection
+            socket.emit('request_latest_readings');
+            // Load appointments and files
+            loadAppointments();
+            loadPatientFiles();
+        });
+        
+        // Handle real-time updates from patients
+        socket.on('readings_update', (data) => {
+            console.log('Received readings update:', data);
+            updatePatientData(data);
+        });
+        
+        // Listen for new appointments
+        socket.on('new_appointment', (appointment) => {
+            console.log('New appointment received:', appointment);
+            // Refresh appointments list
+            loadAppointments();
+            // Create an alert
+            createAlert(appointment.patient, 'New Appointment Request', `${appointment.date} at ${appointment.time}`);
+        });
+        
+        // Listen for appointment updates
+        socket.on('appointment_updated', (appointment) => {
+            console.log('Appointment updated:', appointment);
+            // Refresh appointments list
+            loadAppointments();
+        });
+        
+        // Listen for new file uploads
+        socket.on('new_file_uploaded', (file) => {
+            console.log('New file uploaded:', file);
+            // Refresh files list
+            loadPatientFiles();
+            // Create an alert
+            createAlert(file.uploaded_by, 'New File Uploaded', file.original_name);
+        });
+        
+        // Load appointments from API
+        function loadAppointments() {
+            fetch('/api/appointments')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('appointmentsTableBody');
+                    
+                    if (!data.appointments || data.appointments.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No appointments scheduled</td></tr>';
+                        return;
+                    }
+                    
+                    tableBody.innerHTML = '';
+                    
+                    data.appointments.forEach(appointment => {
+                        const row = document.createElement('tr');
+                        
+                        // Format the date
+                        const formattedDate = new Date(appointment.date).toLocaleDateString();
+                        
+                        // Status styling
+                        let statusClass = 'status-pending';
+                        if (appointment.status === 'approved') statusClass = 'status-approved';
+                        if (appointment.status === 'rejected') statusClass = 'status-rejected';
+                        
+                        const isDecided = appointment.status === 'approved' || appointment.status === 'rejected';
+                        
+                        row.innerHTML = `
+                            <td>${appointment.patient}</td>
+                            <td>${appointment.date}</td>
+                            <td>${appointment.time}</td>
+                            <td>${appointment.reason}</td>
+                            <td><span class="status-badge ${statusClass}">${appointment.status}</span></td>
+                            <td class="appt-actions">
+                                <button 
+                                    class="appt-btn appt-approve" 
+                                    onclick="updateAppointment('${appointment.id}', 'approved')"
+                                    ${isDecided ? 'disabled' : ''}
+                                    title="Approve appointment"
+                                >
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button 
+                                    class="appt-btn appt-reject" 
+                                    onclick="updateAppointment('${appointment.id}', 'rejected')"
+                                    ${isDecided ? 'disabled' : ''}
+                                    title="Reject appointment"
+                                >
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </td>
+                        `;
+                        
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching appointments:', error);
+                    document.getElementById('appointmentsTableBody').innerHTML = 
+                        '<tr><td colspan="6" style="text-align: center;">Error loading appointments</td></tr>';
+                });
+        }
+        
+        // Update appointment status
+        function updateAppointment(id, status) {
+            fetch(`/api/appointments/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update was successful
+                    console.log('Appointment updated:', data.appointment);
+                    // Update the UI
+                    loadAppointments();
+                } else {
+                    alert('Error updating appointment: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating appointment. Please try again.');
+            });
+        }
+        
+        // Load patient files from API
+        function loadPatientFiles() {
+            fetch('/api/files')
+                .then(response => response.json())
+                .then(data => {
+                    const filesContainer = document.getElementById('patientFiles');
+                    
+                    if (!data.files || data.files.length === 0) {
+                        filesContainer.innerHTML = '<p style="text-align: center;">No files uploaded yet</p>';
+                        return;
+                    }
+                    
+                    filesContainer.innerHTML = '';
+                    
+                    data.files.forEach(file => {
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        
+                        // Choose icon based on file type
+                        let iconClass = 'fas fa-file';
+                        if (['jpg', 'jpeg', 'png'].includes(file.file_type)) {
+                            iconClass = 'fas fa-file-image';
+                        } else if (['pdf'].includes(file.file_type)) {
+                            iconClass = 'fas fa-file-pdf';
+                        } else if (['doc', 'docx'].includes(file.file_type)) {
+                            iconClass = 'fas fa-file-word';
+                        }
+                        
+                        // Format date
+                        const uploadDate = new Date(file.upload_date).toLocaleString();
+                        
+                        fileItem.innerHTML = `
+                            <div class="file-icon">
+                                <i class="${iconClass}"></i>
+                            </div>
+                            <div class="file-details">
+                                <div class="file-name">${file.original_name}</div>
+                                <div class="file-meta">
+                                    <span>Category: ${file.category}</span> • 
+                                    <span>Uploaded by: ${file.uploaded_by}</span> •
+                                    <span>Date: ${uploadDate}</span>
+                                </div>
+                                <div class="file-description">${file.description || 'No description'}</div>
+                            </div>
+                            <div class="file-actions">
+                                <a href="/uploads/${file.filename}" target="_blank" title="View file">
+                                    <button title="View file"><i class="fas fa-eye"></i></button>
+                                </a>
+                                <button title="Download file" onclick="window.open('/uploads/${file.filename}', '_blank')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        `;
+                        
+                        filesContainer.appendChild(fileItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching files:', error);
+                    document.getElementById('patientFiles').innerHTML = 
+                        '<p style="text-align: center;">Error loading files</p>';
+                });
+        }
+        
+        // Update patient data in the interface
+        function updatePatientData(data) {
+            const patientItem = document.getElementById('patient-alex');
+            const glucoseValue = document.getElementById('glucose-value');
+            const bpValue = document.getElementById('bp-value');
+            const glucoseRisk = document.getElementById('glucose-risk');
+            const bpRisk = document.getElementById('bp-risk');
+            const lastCheckTime = patientItem.querySelector('.last-check-time');
+            
+            // Add highlight animation
+            patientItem.classList.add('update-highlight');
+            setTimeout(() => patientItem.classList.remove('update-highlight'), 1500);
+            
+            // Update timestamp
+            const now = new Date().toLocaleTimeString();
+            lastCheckTime.textContent = now;
+            
+            // Update glucose data if available
+            if (data.diabetes) {
+                glucoseValue.textContent = `${data.diabetes.value} mg/dL`;
+                
+                // Update risk indicator
+                glucoseRisk.textContent = capitalizeFirstLetter(data.diabetes.risk_level);
+                updateRiskClass(glucoseRisk, data.diabetes.risk_level);
+                
+                // Check if we need to create an alert
+                if (data.diabetes.risk_level === 'high' || data.diabetes.risk_level === 'critical') {
+                    createAlert('Alex Doe', 'High blood glucose', `Blood sugar level: ${data.diabetes.value} mg/dL`);
+                }
+            }
+            
+            // Update blood pressure data if available
+            if (data.hypertension) {
+                bpValue.textContent = data.hypertension.value;
+                
+                // Update risk indicator
+                bpRisk.textContent = capitalizeFirstLetter(data.hypertension.risk_level);
+                updateRiskClass(bpRisk, data.hypertension.risk_level);
+                
+                // Check if we need to create an alert
+                if (data.hypertension.risk_level === 'high' || data.hypertension.risk_level === 'critical') {
+                    createAlert('Alex Doe', 'High blood pressure', `BP reading: ${data.hypertension.value} mmHg`);
+                }
+            }
+        }
+        
+        // Helper function to update risk class
+        function updateRiskClass(element, risk) {
+            element.classList.remove('low-risk', 'medium-risk', 'high-risk', 'critical-risk');
+            
+            switch(risk) {
+                case 'low':
+                    element.classList.add('low-risk');
+                    break;
+                case 'medium':
+                    element.classList.add('medium-risk');
+                    break;
+                case 'high':
+                    element.classList.add('high-risk');
+                    break;
+                case 'critical':
+                    element.classList.add('critical-risk');
+                    break;
+            }
+        }
+        
+        // Helper function to capitalize first letter
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        // Create an alert in the alerts section
+        function createAlert(patient, title, details) {
+            const alertList = document.querySelector('.alert-list');
+            const alertItem = document.createElement('div');
+            alertItem.className = 'alert-item';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            
+            alertItem.innerHTML = `
+                <h4>${title}</h4>
+                <p><strong>${patient}</strong> - ${details}</p>
+                <small>${timestamp}</small>
+            `;
+            
+            // Add to beginning of list
+            alertList.insertBefore(alertItem, alertList.firstChild);
+            
+            // Update alert count
+            alertCount++;
+            document.getElementById('alertCount').textContent = alertCount;
+        }
+        
+        // Request updates periodically
+        setInterval(() => {
+            socket.emit('request_latest_readings');
+        }, 30000); // Every 30 seconds
+        
+        // Original script code
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // Enhanced calendar generation
+        function generateCalendar() {
+            const calendarGrid = document.querySelector('.calendar-grid');
+            calendarGrid.innerHTML = ''; // Clear existing content
+            
+            const daysInMonth = 30;
+            const today = new Date().getDate();
+
+            for(let i = 1; i <= daysInMonth; i++) {
+                const day = document.createElement('div');
+                day.className = 'calendar-day';
+                day.textContent = i;
+                day.setAttribute('role', 'button');
+                day.setAttribute('aria-label', `Day ${i}`);
+                
+                if(i === today) day.classList.add('active');
+                calendarGrid.appendChild(day);
+            }
+        }
+        generateCalendar();
+
+        // Close mobile menu on click outside
+        document.addEventListener('click', (e) => {
+            if(!navLinks.contains(e.target) && !menuToggle.contains(e.target)) {
+                navLinks.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

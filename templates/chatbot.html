@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthSync - AI Health Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-purple: #A88DDB;
+            --secondary-purple: #F9E6FF;
+            --accent-pink: #FF69B4;
+            --dark-text: #2D3436;
+            --light-text: #636e72;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-purple), #D8BFD8);
+            min-height: 100vh;
+            color: var(--dark-text);
+        }
+
+        /* Chat Container */
+        .chat-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Chat Header */
+        .chat-header {
+            text-align: center;
+            padding: 2rem 0;
+            color: white;
+        }
+
+        .chat-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .chat-header p {
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* Chat Main */
+        .chat-main {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Chat Messages */
+        .chat-messages {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .bot-message {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .user-message .message-content {
+            background: var(--secondary-purple);
+            border: 2px solid var(--primary-purple);
+            border-bottom-right-radius: 5px;
+        }
+
+        .bot-message .message-content {
+            background: var(--primary-purple);
+            color: white;
+            border-bottom-left-radius: 5px;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            padding: 1rem 2rem;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary-purple);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        /* Chat Input */
+        .chat-input {
+            padding: 2rem;
+            border-top: 2px solid var(--secondary-purple);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--primary-purple);
+            border-radius: 30px;
+            font-size: 1rem;
+        }
+
+        .chat-input button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 30px;
+            background: var(--accent-pink);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .chat-input button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,105,180,0.3);
+        }
+
+        /* Back Button */
+        .back-button {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .chat-container {
+                padding: 1rem;
+            }
+            
+            .chat-header h1 {
+                font-size: 2rem;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .chat-input {
+                flex-direction: column;
+            }
+
+            .chat-input button {
+                width: 100%;
+            }
+        }
+
+        /* Additional styles for questionnaire */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .quick-action-btn {
+            background: var(--secondary-purple);
+            color: var(--primary-purple);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary-purple);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-box li i {
+            color: var(--accent-pink);
+        }
+    </style>
+</head>
+<body>
+    <a href="/patient-dashboard" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Dashboard
+    </a>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>HealthSync AI Assistant</h1>
+            <p>Your personal health companion powered by AI</p>
+        </div>
+
+        <div class="chat-main">
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be added here -->
+            </div>
+
+            <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                <button onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const typingIndicator = document.querySelector('.typing-indicator');
+        
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let answers = {};
+
+        // Connect to Socket.IO
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        // Handle bot responses
+        socket.on('bot_response', (data) => {
+            appendMessage('bot', data.response);
+        });
+
+        // Handle regular messages
+        socket.on('message', (data) => {
+            appendMessage('bot', data.response);
+        });
+
+        // Handle questionnaire
+        socket.on('start_questions', (data) => {
+            currentQuestions = data.questions;
+            currentQuestionIndex = 0;
+            answers = {};
+            appendMessage('bot', currentQuestions[0]);
+        });
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+
+            appendMessage('user', message);
+            userInput.value = '';
+
+            showTypingIndicator();
+
+            if (currentQuestions.length > 0) {
+                // We're in the middle of a questionnaire
+                answers[currentQuestions[currentQuestionIndex]] = message;
+                currentQuestionIndex++;
+
+                if (currentQuestionIndex < currentQuestions.length) {
+                    // Show next question
+            setTimeout(() => {
+                        hideTypingIndicator();
+                        appendMessage('bot', currentQuestions[currentQuestionIndex]);
+                    }, 1000);
+                } else {
+                    // Questionnaire complete, send for analysis
+                    socket.emit('analyze_data', {
+                        type: currentQuestions === diabetesQuestions ? 'diabetes' : 'hypertension',
+                        answers: answers
+                    });
+                    currentQuestions = [];
+                    currentQuestionIndex = 0;
+                    answers = {};
+                }
+            } else {
+                // Regular message
+                socket.emit('user_message', { message: message });
+            }
+        }
+
+        function appendMessage(sender, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            // Format message if it contains bullet points
+            if (message.includes('•')) {
+                const parts = message.split('\n\n');
+                parts.forEach(part => {
+                    if (part.includes('•')) {
+                        const ul = document.createElement('ul');
+                        const lines = part.split('\n');
+                        lines.forEach(line => {
+                            if (line.trim()) {
+                                const li = document.createElement('li');
+                                if (line.startsWith('•')) {
+                                    li.innerHTML = `<i class="fas fa-check-circle"></i>${line.substring(1)}`;
+                                } else {
+                                    li.textContent = line;
+                                }
+                                ul.appendChild(li);
+                            }
+                        });
+                        content.appendChild(ul);
+                    } else {
+                        const p = document.createElement('p');
+                        p.textContent = part;
+                        content.appendChild(p);
+                    }
+                });
+            } else {
+                content.textContent = message;
+            }
+
+            messageDiv.appendChild(content);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'flex';
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        // Quick action functions
+        function startBloodSugarCheck() {
+            socket.emit('user_message', { message: 'sugar' });
+        }
+
+        function startBloodPressureCheck() {
+            socket.emit('user_message', { message: 'blood pressure' });
+        }
+
+        // Add quick action buttons after welcome message
+        socket.on('bot_response', (data) => {
+            if (data.response.includes("Hello! I'm your HealthSync Assistant")) {
+                const quickActions = document.createElement('div');
+                quickActions.className = 'quick-actions';
+                quickActions.innerHTML = `
+                    <button class="quick-action-btn" onclick="startBloodSugarCheck()">
+                        <i class="fas fa-tint"></i> Check Blood Sugar
+                    </button>
+                    <button class="quick-action-btn" onclick="startBloodPressureCheck()">
+                        <i class="fas fa-heartbeat"></i> Check Blood Pressure
+                    </button>
+                `;
+                chatMessages.lastElementChild.querySelector('.message-content').appendChild(quickActions);
+            }
+        });
+    </script>
+</body>
+</html>

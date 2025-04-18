@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HealthSync - Patient Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    :root {
+      --primary-purple: #A88DDB;
+      --secondary-purple: #F9E6FF;
+      --accent-pink: #FF69B4;
+      --dark-text: #2D3436;
+      --light-text: #636e72;
+      --success-green: #2ecc71;
+      --warning-orange: #f39c12;
+      --danger-red: #e74c3c;
+    }
+    
+    body {
+      background-color: #f8f9fa;
+      color: var(--dark-text);
+      overflow-x: hidden;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100vh;
+      background: white;
+      box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      padding: 1.5rem;
+      transition: 0.3s;
+    }
+    
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    
+    .sidebar-logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-purple);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .sidebar-logo i {
+      color: var(--accent-pink);
+    }
+    
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--light-text);
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    
+    .sidebar-link i {
+      font-size: 1.2rem;
+    }
+    
+    .sidebar-link:hover, .sidebar-link.active {
+      background: var(--secondary-purple);
+      color: var(--primary-purple);
+    }
+    
+    .sidebar-link.active {
+      font-weight: 600;
+    }
+    
+    .sidebar-link[href="/logout"] {
+      margin-top: auto;
+      border-top: 1px solid #f1f1f1;
+      padding-top: 1.2rem;
+      margin-top: 1.2rem;
+      color: #e74c3c;
+    }
+    
+    .sidebar-link[href="/logout"]:hover {
+      background: rgba(231, 76, 60, 0.1);
+      color: #e74c3c;
+    }
+    
+    /* Main Content */
+    .main-content {
+      margin-left: 250px;
+      padding: 2rem;
+      transition: 0.3s;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    
+    .header-title h1 {
+      font-size: 1.8rem;
+      color: var(--dark-text);
+    }
+    
+    .header-title p {
+      color: var(--light-text);
+    }
+    
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--primary-purple);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    
+    .user-name {
+      font-weight: 600;
+    }
+    
+    .user-role {
+      font-size: 0.8rem;
+      color: var(--light-text);
+    }
+    
+    /* Emergency SOS */
+    .emergency-sos {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--danger-red);
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(231, 76, 60, 0.3);
+      cursor: pointer;
+      z-index: 1000;
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    
+    .emergency-modal {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      text-align: center;
+      max-width: 400px;
+    }
+    
+    /* Stats / Vitals */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--primary-purple);
+      opacity: 0.5;
+    }
+    
+    .stat-card.warning::before {
+      background: var(--warning-orange);
+    }
+    
+    .stat-card.danger::before {
+      background: var(--danger-red);
+    }
+    
+    .stat-card.success::before {
+      background: var(--success-green);
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .stat-title {
+      font-size: 1rem;
+      color: var(--light-text);
+    }
+    
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1rem;
+    }
+    
+    .bg-blue {
+      background: var(--primary-purple);
+    }
+    
+    .bg-pink {
+      background: var(--accent-pink);
+    }
+    
+    .bg-green {
+      background: var(--success-green);
+    }
+    
+    .bg-orange {
+      background: var(--warning-orange);
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-change {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.9rem;
+    }
+    
+    .positive {
+      color: var(--success-green);
+    }
+    
+    .negative {
+      color: var(--danger-red);
+    }
+    
+    /* Content Sections */
+    .content-section {
+      display: none;
+      padding: 2rem;
+      min-height: 100vh;
+      background: #f8f9fa;
+    }
+    
+    .content-section.active {
+      display: block;
+    }
+    
+    .section-header {
+      margin-bottom: 2rem;
+    }
+    
+    .section-header h2 {
+      font-size: 1.8rem;
+      color: var(--dark-text);
+      margin-bottom: 0.5rem;
+    }
+    
+    .section-header p {
+      color: var(--light-text);
+    }
+    
+    /* Medications & Doctor Messages */
+    .medications, .doctor-messages {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      margin-top: 1rem;
+    }
+    
+    .medications h2, .doctor-messages h2 {
+      margin-bottom: 1rem;
+      color: var(--dark-text);
+    }
+    
+    /* Chat Styles */
+    .chat-container {
+        position: fixed;
+        top: 0;
+        left: 250px;
+        right: 0;
+        bottom: 0;
+        width: calc(100% - 250px);
+        height: 100vh;
+      background: white;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 100; /* Lower z-index to allow content sections to appear above */
+    }
+
+    /* Add style for content sections to appear above chat when active */
+    .content-section.active {
+        position: relative;
+        z-index: 200;
+        background: #f8f9fa;
+    }
+
+    @media (max-width: 992px) {
+        .chat-container {
+            left: 0;
+            width: 100%;
+        }
+    }
+
+    .chat-header {
+        padding: 20px;
+        background: var(--primary-purple);
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chat-header h2 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .chat-close {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1.2rem;
+        padding: 8px;
+        border-radius: 50%;
+        transition: background-color 0.3s;
+    }
+
+    .chat-close:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .chat-messages {
+        flex-grow: 1;
+      overflow-y: auto;
+        padding: 20px;
+      background: #f8f9fa;
+    }
+
+    .message {
+        margin-bottom: 15px;
+        max-width: 600px; /* Larger max-width for full screen */
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bot-message {
+        margin-right: auto;
+    }
+
+    .user-message {
+        margin-left: auto;
+        background: var(--primary-purple);
+        color: white;
+        padding: 12px 15px;
+        border-radius: 15px;
+        border-bottom-right-radius: 5px;
+    }
+
+    .bot-message .message-content {
+        background: white;
+        padding: 12px 15px;
+        border-radius: 15px;
+        border-bottom-left-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .bot-message h3 {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+        color: var(--primary-purple);
+    }
+
+    .chat-input-container {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 10px;
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    #chatInput {
+        flex-grow: 1;
+        padding: 12px;
+        border: 2px solid #eee;
+        border-radius: 8px;
+        outline: none;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    #chatInput:focus {
+        border-color: var(--primary-purple);
+    }
+
+    .btn-primary {
+        background: var(--primary-purple);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+        font-weight: 500;
+    }
+
+    .btn-primary:hover {
+        background: var(--accent-pink);
+    }
+
+    .info-box {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+        border: 1px solid #eee;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+
+    .quick-action-btn {
+        background: var(--secondary-purple);
+        color: var(--primary-purple);
+        border: none;
+        padding: 10px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .quick-action-btn:hover {
+        background: var(--primary-purple);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .quick-action-btn i {
+        font-size: 1rem;
+    }
+    
+    /* Appointment & Upload Forms */
+    .appointment-form,
+    .upload-form {
+      background: white;
+        padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        max-width: 100%;
+        margin: 0 auto;
+        height: calc(100vh - 120px); /* Full height minus header */
+        overflow-y: auto;
+    }
+
+    .appointment-form form,
+    .upload-form form {
+        max-width: 800px;
+        margin: 2rem auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .appointment-form form div,
+    .upload-form form div {
+        margin-bottom: 1.5rem;
+    }
+
+    .appointment-form label,
+    .upload-form label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--dark-text);
+    }
+
+    .appointment-form input,
+    .appointment-form select,
+    .upload-form input,
+    .upload-form textarea {
+      width: 100%;
+        padding: 12px;
+        border: 2px solid #eee;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .appointment-form input:focus,
+    .appointment-form select:focus,
+    .upload-form input:focus,
+    .upload-form textarea:focus {
+        border-color: var(--primary-purple);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(168, 141, 219, 0.1);
+    }
+
+    .upload-form .upload-area {
+        border: 2px dashed var(--primary-purple);
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .upload-form .upload-area:hover {
+        background: var(--secondary-purple);
+    }
+
+    .upload-form .upload-icon {
+        font-size: 3rem;
+        color: var(--primary-purple);
+        margin-bottom: 1rem;
+    }
+
+    .upload-form .file-info {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        display: none;
+    }
+    
+    /* Uploaded file list */
+    .uploaded-files {
+      margin-top: 2rem;
+    }
+    
+    .file-item {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      background: #f8f9fa;
+      margin-bottom: 0.5rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--primary-purple);
+    }
+    
+    .file-icon {
+      font-size: 1.5rem;
+      color: var(--primary-purple);
+      margin-right: 1rem;
+    }
+    
+    .file-details {
+      flex-grow: 1;
+    }
+    
+    .file-name {
+      font-weight: 500;
+      margin-bottom: 0.2rem;
+    }
+    
+    .file-meta {
+      font-size: 0.8rem;
+      color: var(--light-text);
+    }
+    
+    .file-actions a {
+      color: var(--primary-purple);
+      margin-left: 1rem;
+      text-decoration: none;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 992px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.active {
+        transform: translateX(0);
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      .menu-toggle {
+        display: block !important;
+      }
+    }
+    
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--dark-text);
+    }
+    
+    /* Charts Container */
+    .charts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+        padding: 1rem;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .chart-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--dark-text);
+    }
+
+    .chart-legend {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .chart-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    /* Real-time Update Animation */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .stat-update {
+        animation: pulse 0.5s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <i class="fas fa-heartbeat"></i>
+        HealthSync
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link active" data-target="section-myDoctors">
+        <i class="fas fa-user-md"></i>
+        My Doctors
+      </a>
+      <a class="sidebar-link" data-target="section-chatbot">
+        <i class="fas fa-robot"></i>
+        Chatbot
+      </a>
+      <a class="sidebar-link" data-target="section-appointment">
+        <i class="fas fa-calendar-check"></i>
+        Appointment
+      </a>
+      <a class="sidebar-link" data-target="section-upload">
+        <i class="fas fa-file-medical"></i>
+        Upload Medical History
+      </a>
+      <a href="/logout" class="sidebar-link" style="margin-top: auto;">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+      </a>
+    </nav>
+  </div>
+  
+  <!-- Emergency SOS Button -->
+  <div class="emergency-sos" id="sosButton">
+    <i class="fas fa-plus"></i>
+  </div>
+  
+  <div class="modal-overlay" id="emergencyModal">
+    <div class="emergency-modal">
+      <h3>Emergency Assistance</h3>
+      <p>Please confirm you need emergency help:</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+        <button class="btn btn-primary" onclick="callEmergency()">
+          <i class="fas fa-phone"></i> Call 911
+        </button>
+        <button class="btn btn-secondary" onclick="notifyDoctor()">
+          <i class="fas fa-bell"></i> Alert Doctor
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="header">
+      <div class="header-title">
+        <h1>Welcome Back, Alex!</h1>
+        <p>Stay connected and monitored in real time.</p>
+      </div>
+      <div class="menu-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
+      <div class="user-profile">
+        <div class="user-avatar">AD</div>
+        <div>
+          <div class="user-name">Alex Doe</div>
+          <div class="user-role">Patient</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Content Sections Container -->
+    <!-- My Doctors Section (default visible) -->
+    <div id="section-myDoctors" class="content-section active">
+      <!-- Vitals / Health Stats Cards -->
+      <h2>Vitals</h2>
+      <div class="stats-grid">
+        <div class="stats-card" id="glucoseCard">
+          <div class="stat-header">
+            <div class="stat-title">Blood Glucose</div>
+            <div class="stat-icon bg-blue">
+              <i class="fas fa-tint"></i>
+            </div>
+          </div>
+          <div class="stat-value">--</div>
+          <div class="stat-change">Last reading: --</div>
+          </div>
+        <div class="stats-card" id="bpCard">
+          <div class="stat-header">
+            <div class="stat-title">Blood Pressure</div>
+            <div class="stat-icon bg-pink">
+              <i class="fas fa-heartbeat"></i>
+            </div>
+          </div>
+          <div class="stat-value">--/--</div>
+          <div class="stat-change">Last reading: --</div>
+          </div>
+        </div>
+      
+      <div class="charts-container">
+        <div class="chart-card">
+          <canvas id="glucoseChart"></canvas>
+            </div>
+        <div class="chart-card">
+          <canvas id="bpChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- My Doctors Content -->
+      <h2>My Doctors</h2>
+      <p>Here is the list of your doctors and an overview of your health records.</p>
+      <!-- Update the Medications section -->
+<div class="medications">
+  <h2>Today's Medications</h2>
+  <div class="info-box-container">
+      <div class="info-box">
+          <h3>Metformin</h3>
+          <p>500mg · 8:00 AM<br>
+          <em>For blood sugar control</em></p>
+      </div>
+      <div class="info-box">
+          <h3>Lisinopril</h3>
+          <p>10mg · 12:00 PM<br>
+          <em>Blood pressure medication</em></p>
+      </div>
+      <div class="info-box">
+          <h3>Insulin</h3>
+          <p>8 units · 6:30 PM<br>
+          <em>Evening dose</em></p>
+      </div>
+  </div>
+</div>
+      <!-- Doctor Messages -->
+      <div class="doctor-messages" style="margin-top: 1rem;">
+        <h2>Recent Doctor Messages</h2>
+        <div style="padding: 1rem; background:#f8f9fa; border-radius: 8px; margin-bottom: 0.5rem;">
+          <p><strong>Dr. Rodriguez</strong> (Today, 10:30 AM): Your blood work looks good!</p>
+        </div>
+        <div style="padding: 1rem; background:#f8f9fa; border-radius: 8px;">
+          <p><strong>Dr. Nguyen</strong> (Yesterday, 3:45 PM): Increase your daily activity.</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Update the Chat Container section -->
+<div class="chat-container" id="chatContainer">
+    <div class="chat-header">
+        <i class="fas fa-robot"></i>
+        <h2>HealthSync Bot</h2>
+        <button class="chat-close" onclick="toggleChat()" title="Close chat">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+  <div class="chat-messages" id="chatMessages">
+      <div class="message bot-message">
+            <div class="message-content">
+          <h3>HealthSync Bot</h3>
+          <p>Hi Alex! How can I assist you today? You can ask about:</p>
+          <div class="info-box">
+                    <p>• Blood sugar monitoring<br>
+                       • Blood pressure monitoring<br>
+                 • Medication tracking<br>
+                 • Symptom analysis</p>
+                </div>
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="startBloodSugarCheck()">
+                        <i class="fas fa-tint"></i> Check Blood Sugar
+                    </button>
+                    <button class="quick-action-btn" onclick="startBloodPressureCheck()">
+                        <i class="fas fa-heartbeat"></i> Check Blood Pressure
+                    </button>
+                </div>
+          </div>
+      </div>
+  </div>
+  <div class="chat-input-container">
+      <input type="text" id="chatInput" placeholder="Type your health question..." 
+             onkeypress="if(event.key === 'Enter') sendMessage()">
+      <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+  </div>
+</div>
+    <!-- Appointment Section -->
+    <div id="section-appointment" class="content-section">
+      <div class="section-header">
+        <h2>Schedule an Appointment</h2>
+        <p>Book your next consultation with our healthcare professionals</p>
+      </div>
+      <div class="appointment-form">
+        <form onsubmit="submitAppointment(event)">
+          <div>
+            <label for="apptDate">Preferred Date</label>
+            <input type="date" id="apptDate" required>
+          </div>
+          <div>
+            <label for="apptTime">Preferred Time</label>
+            <input type="time" id="apptTime" required>
+          </div>
+          <div>
+            <label for="apptDoctor">Select Doctor</label>
+            <select id="apptDoctor" required>
+              <option value="">Choose a doctor...</option>
+              <option value="Dr. Rodriguez">Dr. Rodriguez - Cardiologist</option>
+              <option value="Dr. Nguyen">Dr. Nguyen - General Physician</option>
+            </select>
+          </div>
+          <div>
+            <label for="apptReason">Reason for Visit</label>
+            <input type="text" id="apptReason" placeholder="Brief description of your visit" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Schedule Appointment</button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Upload Medical History Section -->
+    <div id="section-upload" class="content-section">
+      <div class="section-header">
+      <h2>Upload Medical History</h2>
+        <p>Securely share your medical documents with your healthcare team</p>
+      </div>
+      <div class="upload-form">
+        <form id="uploadForm" enctype="multipart/form-data">
+          <div class="upload-area" onclick="document.getElementById('medicalFile').click()">
+            <div class="upload-icon">
+              <i class="fas fa-file-medical"></i>
+          </div>
+            <h3>Drop your files here</h3>
+            <p>or click to browse</p>
+            <input type="file" id="medicalFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required style="display: none">
+          </div>
+          <div class="file-info" id="fileInfo">
+            <p><strong>Selected file:</strong> <span id="fileName">No file selected</span></p>
+          </div>
+          
+          <div>
+            <label for="fileCategory">File Category</label>
+            <select id="fileCategory" required>
+              <option value="">Select category...</option>
+              <option value="Lab Report">Lab Report</option>
+              <option value="Prescription">Prescription</option>
+              <option value="Medical Record">Medical Record</option>
+              <option value="X-Ray/Scan">X-Ray/Scan</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          
+          <div>
+            <label for="fileDescription">Description</label>
+            <textarea id="fileDescription" rows="3" placeholder="Add a brief description of this document"></textarea>
+          </div>
+          
+          <button type="submit" class="btn btn-primary">Upload Documents</button>
+        </form>
+        
+        <div class="uploaded-files">
+          <h3>My Uploaded Files</h3>
+          <div id="filesList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar Navigation Handling
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+    const sections = document.querySelectorAll('.content-section');
+    
+    sidebarLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        // Remove active class from all links
+        sidebarLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        
+        // Hide all sections
+        sections.forEach(section => section.classList.remove('active'));
+        
+        // Show the section corresponding to the clicked link
+        const targetId = link.getAttribute('data-target');
+        document.getElementById(targetId).classList.add('active');
+
+        // Special handling for chatbot section
+        if (targetId === 'section-chatbot') {
+            document.getElementById('chatContainer').style.display = 'flex';
+        } else {
+            // Don't hide chat container, just ensure content is visible above it
+            document.getElementById(targetId).style.display = 'block';
+        }
+      });
+    });
+    
+    // Toggle sidebar on mobile
+    document.querySelector('.menu-toggle').addEventListener('click', function() {
+      document.querySelector('.sidebar').classList.toggle('active');
+    });
+    
+    // Emergency SOS functionality
+    document.getElementById('sosButton').addEventListener('click', () => {
+      document.getElementById('emergencyModal').style.display = 'flex';
+    });
+    
+    function callEmergency() {
+      window.location.href = 'tel:911';
+      document.getElementById('emergencyModal').style.display = 'none';
+    }
+    
+    function notifyDoctor() {
+      alert('Your doctor has been alerted! They will contact you shortly.');
+      document.getElementById('emergencyModal').style.display = 'none';
+    }
+    
+    document.getElementById('emergencyModal').addEventListener('click', (e) => {
+      if(e.target === document.getElementById('emergencyModal')) {
+        document.getElementById('emergencyModal').style.display = 'none';
+      }
+    });
+    
+    // Chatbot Functionality
+    const socket = io();
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    let currentQuestionIndex = 0;
+    let currentQuestions = [];
+    let currentType = '';
+    let answers = {};
+
+    socket.on('connect', () => {
+        console.log('Connected to server');
+    });
+
+    socket.on('message', (data) => {
+        appendMessage('bot', data.response);
+    });
+
+    socket.on('start_questions', (data) => {
+        currentType = data.type;
+        currentQuestions = data.questions;
+        currentQuestionIndex = 0;
+        answers = {};
+        // Show first question
+        appendMessage('bot', currentQuestions[0]);
+    });
+
+     function sendMessage() {
+        const message = chatInput.value.trim();
+        if (message === '') return;
+
+        appendMessage('user', message);
+        chatInput.value = '';
+
+        if (currentQuestions.length > 0) {
+            // We're in the middle of a questionnaire
+            answers[currentQuestions[currentQuestionIndex]] = message;
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < currentQuestions.length) {
+                // Show next question with a slight delay for better UX
+                setTimeout(() => {
+                    appendMessage('bot', currentQuestions[currentQuestionIndex]);
+                }, 500);
+            } else {
+                // Questionnaire complete, send for analysis
+                socket.emit('analyze_data', {
+                    type: currentType,
+                    answers: answers
+                });
+                currentQuestions = [];
+                currentQuestionIndex = 0;
+                answers = {};
+            }
+        } else {
+            // Regular chat message
+            socket.emit('user_message', { message: message });
+        }
+    }
+
+    function appendMessage(sender, message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+        
+        if (sender === 'bot') {
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            const title = document.createElement('h3');
+            title.textContent = 'HealthSync Bot';
+            content.appendChild(title);
+            
+            const text = document.createElement('p');
+            text.textContent = message;
+            content.appendChild(text);
+            
+            messageDiv.appendChild(content);
+        } else {
+            const content = document.createElement('div');
+            content.textContent = message;
+            messageDiv.appendChild(content);
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function toggleChat() {
+        const chatContainer = document.getElementById('chatContainer');
+        const currentDisplay = window.getComputedStyle(chatContainer).display;
+        chatContainer.style.display = currentDisplay === 'none' ? 'flex' : 'none';
+        
+        // If closing chat, show the last active section
+        if (currentDisplay === 'flex') {
+            const activeLink = document.querySelector('.sidebar-link.active');
+            if (activeLink) {
+                const targetId = activeLink.getAttribute('data-target');
+                if (targetId !== 'section-chatbot') {
+                    document.getElementById(targetId).classList.add('active');
+                }
+            }
+        }
+        
+        // Reset scroll position when opening chat
+        if (currentDisplay === 'none') {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+
+    // Initialize chat as hidden
+    document.getElementById('chatContainer').style.display = 'none';
+
+    // Show chat when clicking the chatbot sidebar link
+    document.querySelector('[data-target="section-chatbot"]').addEventListener('click', (e) => {
+        e.preventDefault();
+        // Hide all sections
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        // Show chat
+        document.getElementById('chatContainer').style.display = 'flex';
+        // Update active state in sidebar
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        e.currentTarget.classList.add('active');
+    });
+    
+    // File upload handling
+    document.getElementById('medicalFile').addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || 'No file selected';
+        document.getElementById('fileName').textContent = fileName;
+        document.getElementById('fileInfo').style.display = 'block';
+    });
+
+    // Appointment form submission
+    function submitAppointment(e) {
+      e.preventDefault();
+      const date = document.getElementById('apptDate').value;
+      const time = document.getElementById('apptTime').value;
+      const doctor = document.getElementById('apptDoctor').value;
+      const reason = document.getElementById('apptReason').value;
+        
+      fetch('/api/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ date, time, doctor, reason }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(`Appointment scheduled successfully!\n\nDate: ${date}\nTime: ${time}\nDoctor: ${doctor}\nReason: ${reason}`);
+          e.target.reset();
+        } else {
+          alert('Error scheduling appointment: ' + data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error scheduling appointment. Please try again.');
+      });
+    }
+
+    // Upload form submission
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('medicalFile');
+      const category = document.getElementById('fileCategory').value;
+      const description = document.getElementById('fileDescription').value;
+      
+      if(fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('category', category);
+        formData.append('description', description);
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Uploading...';
+        submitBtn.disabled = true;
+        
+        fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert(`File "${data.file.original_name}" uploaded successfully!`);
+            // Reset form and file info
+            e.target.reset();
+            document.getElementById('fileInfo').style.display = 'none';
+            document.getElementById('fileName').textContent = 'No file selected';
+            // Refresh file list
+            loadSharedFiles();
+          } else {
+            alert('Error uploading file: ' + data.error);
+          }
+          
+          // Reset button
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error uploading file. Please try again.');
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        });
+      }
+    });
+    
+    // Function to load and display shared files
+    function loadSharedFiles() {
+      fetch('/api/files')
+        .then(response => response.json())
+        .then(data => {
+          const filesList = document.getElementById('filesList');
+          filesList.innerHTML = '';
+          
+          if (data.files.length === 0) {
+            filesList.innerHTML = '<p>No files uploaded yet.</p>';
+            return;
+          }
+          
+          data.files.forEach(file => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            
+            // Choose icon based on file type
+            let iconClass = 'fas fa-file';
+            if (['jpg', 'jpeg', 'png'].includes(file.file_type)) {
+              iconClass = 'fas fa-file-image';
+            } else if (['pdf'].includes(file.file_type)) {
+              iconClass = 'fas fa-file-pdf';
+            } else if (['doc', 'docx'].includes(file.file_type)) {
+              iconClass = 'fas fa-file-word';
+            }
+            
+            // Format date
+            const uploadDate = new Date(file.upload_date).toLocaleString();
+            
+            fileItem.innerHTML = `
+              <div class="file-icon">
+                <i class="${iconClass}"></i>
+              </div>
+              <div class="file-details">
+                <div class="file-name">${file.original_name}</div>
+                <div class="file-meta">
+                  <span>${file.category}</span> • 
+                  <span>Uploaded: ${uploadDate}</span>
+                </div>
+                <div class="file-description">${file.description || 'No description'}</div>
+              </div>
+              <div class="file-actions">
+                <a href="/uploads/${file.filename}" target="_blank" title="View file">
+                  <i class="fas fa-eye"></i>
+                </a>
+              </div>
+            `;
+            
+            filesList.appendChild(fileItem);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching files:', error);
+          document.getElementById('filesList').innerHTML = '<p>Error loading files.</p>';
+        });
+    }
+    
+    // Load files when upload section is shown
+    document.querySelector('[data-target="section-upload"]').addEventListener('click', function() {
+      loadSharedFiles();
+    });
+    
+    // Listen for new file uploads via socket.io
+    socket.on('new_file_uploaded', function(file) {
+      // If we're on the upload page, refresh the files list
+      const uploadSection = document.getElementById('section-upload');
+      if (uploadSection.classList.contains('active')) {
+        loadSharedFiles();
+      }
+    });
+    
+    // Listen for new appointments and updates
+    socket.on('appointment_updated', function(appointment) {
+      // If needed, you could add code here to update the appointment status
+      // if we add an appointments display to the patient dashboard
+    });
+
+    function startBloodSugarCheck() {
+        socket.emit('user_message', { message: 'sugar' });
+    }
+
+    function startBloodPressureCheck() {
+        socket.emit('user_message', { message: 'blood pressure' });
+    }
+
+    // Add Socket.IO and Chart.JS Integration
+    let glucoseChart, bpChart;
+    const maxDataPoints = 10; // Maximum number of data points to show
+
+    // Initialize Charts
+    function initializeCharts() {
+        // Glucose Chart
+        const glucoseCtx = document.getElementById('glucoseChart').getContext('2d');
+        glucoseChart = new Chart(glucoseCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Blood Glucose',
+                    data: [],
+                    borderColor: '#A88DDB',
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'mg/dL'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Blood Pressure Chart
+        const bpCtx = document.getElementById('bpChart').getContext('2d');
+        bpChart = new Chart(bpCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Systolic',
+                    data: [],
+                    borderColor: '#A88DDB',
+                    tension: 0.4,
+                    fill: false
+                },
+                {
+                    label: 'Diastolic',
+                    data: [],
+                    borderColor: '#FF69B4',
+                    tension: 0.4,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'mmHg'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Update Stats Card
+    function updateStatsCard(cardId, value, change, risk) {
+        const card = document.getElementById(cardId);
+        if (!card) return; // Guard clause if element not found
+        
+        const valueEl = card.querySelector('.stat-value');
+        const changeEl = card.querySelector('.stat-change');
+        
+        if (!valueEl || !changeEl) return; // Guard clause if elements not found
+
+        // Remove previous status classes
+        card.classList.remove('warning', 'danger', 'success');
+
+        // Add new status class based on risk
+        if (risk === 'high' || risk === 'critical') {
+            card.classList.add('danger');
+        } else if (risk === 'medium') {
+            card.classList.add('warning');
+        } else {
+            card.classList.add('success');
+        }
+
+        // Update values with animation
+        valueEl.classList.add('stat-update');
+        valueEl.textContent = value;
+        changeEl.innerHTML = `<i class="fas fa-clock"></i> ${change}`;
+
+        // Remove animation class
+        setTimeout(() => valueEl.classList.remove('stat-update'), 500);
+    }
+
+    // Update Charts
+    function updateGlucoseChart(value, timestamp) {
+        const date = new Date(timestamp);
+        const timeStr = date.toLocaleTimeString();
+
+        glucoseChart.data.labels.push(timeStr);
+        glucoseChart.data.datasets[0].data.push(value);
+
+        // Remove old data points if exceeding maximum
+        if (glucoseChart.data.labels.length > maxDataPoints) {
+            glucoseChart.data.labels.shift();
+            glucoseChart.data.datasets[0].data.shift();
+        }
+
+        glucoseChart.update();
+    }
+
+    function updateBPChart(systolic, diastolic, timestamp) {
+        const date = new Date(timestamp);
+        const timeStr = date.toLocaleTimeString();
+
+        bpChart.data.labels.push(timeStr);
+        bpChart.data.datasets[0].data.push(systolic);
+        bpChart.data.datasets[1].data.push(diastolic);
+
+        // Remove old data points if exceeding maximum
+        if (bpChart.data.labels.length > maxDataPoints) {
+            bpChart.data.labels.shift();
+            bpChart.data.datasets[0].data.shift();
+            bpChart.data.datasets[1].data.shift();
+        }
+
+        bpChart.update();
+    }
+
+    // Socket.IO Event Handlers
+    socket.on('connect', () => {
+        console.log('Connected to server');
+        initializeCharts();
+        // Request initial data
+        socket.emit('request_latest_readings');
+    });
+
+    socket.on('readings_update', (data) => {
+        console.log('Received readings update:', data); // Debug log
+        
+        // Update Blood Glucose
+        if (data.diabetes) {
+            const glucoseValue = data.diabetes.value;
+            const timestamp = data.diabetes.timestamp;
+            const risk = data.diabetes.risk_level;
+            
+            updateStatsCard('glucoseCard', 
+                `${glucoseValue} mg/dL`,
+                `Last updated: ${new Date(timestamp).toLocaleTimeString()}`,
+                risk
+            );
+            updateGlucoseChart(glucoseValue, timestamp);
+        }
+
+        // Update Blood Pressure
+        if (data.hypertension) {
+            const [systolic, diastolic] = data.hypertension.value.split('/');
+            const timestamp = data.hypertension.timestamp;
+            const risk = data.hypertension.risk_level;
+
+            updateStatsCard('bpCard',
+                `${systolic}/${diastolic} mmHg`,
+                `Last updated: ${new Date(timestamp).toLocaleTimeString()}`,
+                risk
+            );
+            updateBPChart(parseInt(systolic), parseInt(diastolic), timestamp);
+        }
+    });
+
+    // Request updates periodically
+    setInterval(() => {
+        socket.emit('request_latest_readings');
+    }, 30000); // Update every 30 seconds
+  </script>
+</body>
+</html>
