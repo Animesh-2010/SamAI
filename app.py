@@ -12,7 +12,7 @@ import time
 
 app = Flask(__name__)
 CORS(app)
-app.secret_key = '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'
+app.secret_key = 'GROQ_API_KEY'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Load environment variables for Groq
